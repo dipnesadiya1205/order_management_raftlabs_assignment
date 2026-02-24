@@ -92,33 +92,6 @@ export const OrderTrackingPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* SSE connection status badge */}
-              {connectionState === SSEConnectionState.OPEN ? (
-                <span
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700"
-                  title="Real-time updates via Server-Sent Events"
-                >
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  Connected
-                </span>
-              ) : connectionState === SSEConnectionState.CONNECTING ? (
-                <span
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-700"
-                  title="Establishing connection..."
-                >
-                  <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                  Connecting...
-                </span>
-              ) : (
-                <span
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500"
-                  title={isTerminal ? 'Order has reached a final state' : 'Connection closed'}
-                >
-                  <span className="w-2 h-2 rounded-full bg-gray-400" />
-                  {isTerminal ? 'Updates paused — order complete' : 'Disconnected'}
-                </span>
-              )}
-
               <Button variant="secondary" onClick={handleReset}>
                 Track Another Order
               </Button>
