@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useOrder } from '../../contexts/OrderContext';
-import { SSEConnectionState } from '../../hooks/useSSE';
 import { Input } from '../shared/Input';
 import { Button } from '../shared/Button';
 import { OrderStatusTimeline } from './OrderStatusTimeline';
 import { OrderDetails } from './OrderDetails';
 import { Card } from '../shared/Card';
-import { OrderStatus, type ApiError } from '../../types/index';
+import { type ApiError } from '../../types/index';
 import type { AxiosError } from 'axios';
-
-const TERMINAL_STATUSES: OrderStatus[] = [OrderStatus.DELIVERED, OrderStatus.CANCELLED];
 
 /** Returns a human-readable "X seconds/minutes ago" string. */
 function timeAgo(date: Date): string {
@@ -25,7 +22,7 @@ export const OrderTrackingPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [tick, setTick] = useState(0); // forces re-render so "X ago" stays fresh
 
-  const { trackingOrder, startTracking, stopTracking, connectionState, lastUpdatedAt } = useOrder();
+  const { trackingOrder, startTracking, stopTracking, lastUpdatedAt } = useOrder();
 
   // Refresh the "last updated" label every second.
   useEffect(() => {
@@ -33,8 +30,6 @@ export const OrderTrackingPage: React.FC = () => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, [lastUpdatedAt]);
-
-  const isTerminal = trackingOrder ? TERMINAL_STATUSES.includes(trackingOrder.status) : false;
 
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
