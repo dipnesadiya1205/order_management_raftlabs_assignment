@@ -21,7 +21,10 @@ export class OrderRepository {
   }
 
   async findById(id: string): Promise<IOrder | null> {
-    return await Order.findById(id).populate('items.menuItem');
+    return await Order.findById(id).populate({
+      path: 'items.menuItem',
+      model: 'menu_item',
+    });
   }
 
   async findByOrderNumber(orderNumber: string): Promise<IOrder | null> {
@@ -61,7 +64,10 @@ export class OrderRepository {
 
     const [orders, total] = await Promise.all([
       Order.find(query)
-        .populate('items.menuItem')
+        .populate({
+          path: 'items.menuItem',
+          model: 'menu_item',
+        })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -88,7 +94,10 @@ export class OrderRepository {
     return await Order.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
-    }).populate('items.menuItem');
+    }).populate({
+      path: 'items.menuItem',
+      model: 'menu_item',
+    });
   }
 
   async findPendingOrders(): Promise<IOrder[]> {

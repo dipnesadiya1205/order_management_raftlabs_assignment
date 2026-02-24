@@ -1,7 +1,6 @@
-import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { CartProvider, useCart } from '../../contexts/CartContext';
-import type { MenuItem, MenuCategory } from '../../types/index';
+import { type MenuItem, MenuCategory } from '../../types/index';
 
 const mockMenuItem: MenuItem = {
   _id: '1',

@@ -1,18 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOrder } from '../../contexts/OrderContext';
+import { SSEConnectionState } from '../../hooks/useSSE';
 import { Input } from '../shared/Input';
 import { Button } from '../shared/Button';
 import { OrderStatusTimeline } from './OrderStatusTimeline';
 import { OrderDetails } from './OrderDetails';
-import { Loading } from '../shared/Loading';
-import { ErrorMessage } from '../shared/ErrorMessage';
 import { Card } from '../shared/Card';
+import { OrderStatus, type ApiError } from '../../types/index';
+import type { AxiosError } from 'axios';
+
+const TERMINAL_STATUSES: OrderStatus[] = [OrderStatus.DELIVERED, OrderStatus.CANCELLED];
+
+/** Returns a human-readable "X seconds/minutes ago" string. */
+function timeAgo(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}m ago`;
+}
 
 export const OrderTrackingPage: React.FC = () => {
   const [orderNumber, setOrderNumber] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { trackingOrder, startTracking, stopTracking } = useOrder();
+  const [tick, setTick] = useState(0); // forces re-render so "X ago" stays fresh
+
+  const { trackingOrder, startTracking, stopTracking, connectionState, lastUpdatedAt } = useOrder();
+
+  // Refresh the "last updated" label every second.
+  useEffect(() => {
+    if (!lastUpdatedAt) return;
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [lastUpdatedAt]);
+
+  const isTerminal = trackingOrder ? TERMINAL_STATUSES.includes(trackingOrder.status) : false;
 
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,13 +42,13 @@ export const OrderTrackingPage: React.FC = () => {
       setError('Please enter an order number');
       return;
     }
-
     try {
       setIsLoading(true);
       setError(null);
       await startTracking(orderNumber);
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Order not found. Please check the order number.');
+    } catch (err: unknown) {
+      const error = err as AxiosError<ApiError>;
+      setError(error.response?.data?.error?.message || 'Order not found. Please check the order number.');
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +81,7 @@ export const OrderTrackingPage: React.FC = () => {
         </Card>
       ) : (
         <div>
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
             <div>
               <h2 className="text-2xl font-bold text-gray-800">
                 Order #{trackingOrder.orderNumber}
@@ -68,10 +90,51 @@ export const OrderTrackingPage: React.FC = () => {
                 Placed on {new Date(trackingOrder.createdAt).toLocaleString()}
               </p>
             </div>
-            <Button variant="secondary" onClick={handleReset}>
-              Track Another Order
-            </Button>
+
+            <div className="flex items-center gap-3">
+              {/* SSE connection status badge */}
+              {connectionState === SSEConnectionState.OPEN ? (
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700"
+                  title="Real-time updates via Server-Sent Events"
+                >
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  Connected
+                </span>
+              ) : connectionState === SSEConnectionState.CONNECTING ? (
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-700"
+                  title="Establishing connection..."
+                >
+                  <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                  Connecting...
+                </span>
+              ) : (
+                <span
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500"
+                  title={isTerminal ? 'Order has reached a final state' : 'Connection closed'}
+                >
+                  <span className="w-2 h-2 rounded-full bg-gray-400" />
+                  {isTerminal ? 'Updates paused — order complete' : 'Disconnected'}
+                </span>
+              )}
+
+              <Button variant="secondary" onClick={handleReset}>
+                Track Another Order
+              </Button>
+            </div>
           </div>
+
+          {/* Last updated timestamp */}
+          {lastUpdatedAt && (
+            <p
+              className="text-xs text-gray-400 mb-4"
+              // tick is used only to trigger re-renders; the actual value is unused in JSX
+              data-tick={tick}
+            >
+              Last updated: {timeAgo(lastUpdatedAt)}
+            </p>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="p-6">

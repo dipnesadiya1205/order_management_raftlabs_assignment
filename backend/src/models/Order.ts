@@ -75,7 +75,7 @@ const customerSchema = new Schema<ICustomer>(
       required: [true, 'Phone number is required'],
       validate: {
         validator: function (value: string) {
-          const phonePattern = /^[\d\s\-\+\(\)]{10,15}$/;
+          const phonePattern = /^[\d\s\-()]{10,15}$/;
           return phonePattern.test(value);
         },
         message: 'Please provide a valid phone number',

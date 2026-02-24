@@ -22,7 +22,7 @@ export const OrderSuccessPage: React.FC = () => {
         <p className="text-gray-600 mb-6">
           Thank you for your order. Your food is being prepared.
         </p>
-        
+
         {orderNumber && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-600 mb-1">Your Order Number</p>
@@ -30,7 +30,7 @@ export const OrderSuccessPage: React.FC = () => {
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           <Link to={`/track`}>
             <Button className="w-full">Track Your Order</Button>
           </Link>

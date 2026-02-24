@@ -1,8 +1,7 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MenuCard } from '../../components/menu/MenuCard';
 import { CartProvider } from '../../contexts/CartContext';
-import type { MenuItem, MenuCategory } from '../../types/index';
+import { MenuCategory, type MenuItem } from '../../types/index';
 
 const mockMenuItem: MenuItem = {
   _id: '1',
@@ -17,6 +16,11 @@ const mockMenuItem: MenuItem = {
 };
 
 describe('MenuCard', () => {
+  beforeEach(() => {
+    // Clear cart before each test
+    localStorage.clear();
+  });
+
   it('renders menu item correctly', () => {
     render(
       <CartProvider>
@@ -29,7 +33,7 @@ describe('MenuCard', () => {
     expect(screen.getByText('$12.99')).toBeInTheDocument();
   });
 
-  it('adds item to cart when button is clicked', () => {
+  it('adds item to cart when button is clicked', async () => {
     render(
       <CartProvider>
         <MenuCard menuItem={mockMenuItem} />
@@ -39,7 +43,12 @@ describe('MenuCard', () => {
     const addButton = screen.getByText('Add to Cart');
     fireEvent.click(addButton);
 
-    expect(screen.getByText('Added!')).toBeInTheDocument();
+    // After clicking, quantity controls should appear (item is now in cart)
+    await waitFor(() => {
+      expect(screen.getByText('1')).toBeInTheDocument();
+      expect(screen.getByLabelText('Decrease quantity')).toBeInTheDocument();
+      expect(screen.getByLabelText('Increase quantity')).toBeInTheDocument();
+    }, { timeout: 1000 });
   });
 
   it('disables button when item is unavailable', () => {
@@ -51,7 +60,9 @@ describe('MenuCard', () => {
       </CartProvider>
     );
 
+    // When unavailable, the button should show "Unavailable" and be disabled
     const button = screen.getByText('Unavailable');
     expect(button).toBeDisabled();
+    expect(button).toHaveTextContent('Unavailable');
   });
 });

@@ -101,7 +101,7 @@ export const orderValidation = [
     .trim()
     .notEmpty()
     .withMessage('Phone number is required')
-    .matches(/^[\d\s\-\+\(\)]{10,15}$/)
+    .matches(/^[\d\s\-()]{10,15}$/)
     .withMessage('Invalid phone number format'),
   body('customer.address')
     .trim()

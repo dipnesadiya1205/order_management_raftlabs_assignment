@@ -24,7 +24,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSubmit, isSubmitti
       newErrors.name = 'Name must be at least 2 characters';
     }
 
-    const phonePattern = /^[\d\s\-\+\(\)]{10,15}$/;
+    const phonePattern = /^[\d\s\-()]{10,15}$/;
     if (!phonePattern.test(formData.phone)) {
       newErrors.phone = 'Please enter a valid phone number';
     }

@@ -2,6 +2,7 @@ import { OrderRepository, OrderFilters, PaginationOptions } from '../repositorie
 import { MenuService } from './MenuService';
 import { IOrder, OrderStatus, IOrderItem, ICustomer } from '../models/Order';
 import { NotFoundError, BadRequestError } from '../utils/AppError';
+import { sseConnectionManager } from './SSEConnectionManager';
 
 export interface CreateOrderDTO {
   items: Array<{
@@ -115,6 +116,11 @@ export class OrderService {
     const updatedOrder = await this.orderRepository.updateStatus(id, status);
     if (!updatedOrder) {
       throw new NotFoundError('Order');
+    }
+
+    const fullOrder = await this.orderRepository.findByOrderNumber(updatedOrder.orderNumber);
+    if (fullOrder) {
+      sseConnectionManager.sendOrderUpdate(fullOrder.orderNumber, fullOrder);
     }
 
     return updatedOrder;

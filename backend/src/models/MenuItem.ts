@@ -58,7 +58,8 @@ const menuItemSchema = new Schema<IMenuItem>(
       required: [true, 'Image URL is required'],
       validate: {
         validator: function (value: string) {
-          const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\w .-]*)*\/?$/;
+          // Updated regex to properly handle URLs with paths
+          const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
           return urlPattern.test(value);
         },
         message: 'Please provide a valid image URL',

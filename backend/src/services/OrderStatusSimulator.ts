@@ -1,5 +1,6 @@
 import { OrderRepository } from '../repositories/OrderRepository';
 import { OrderStatus } from '../models/Order';
+import { sseConnectionManager } from './SSEConnectionManager';
 import logger from '../utils/logger';
 
 export class OrderStatusSimulator {
@@ -58,6 +59,12 @@ export class OrderStatusSimulator {
             logger.info(
               `Order ${order.orderNumber} status updated from ${order.status} to ${nextStatus}`
             );
+
+            const updatedOrder = await this.orderRepository.findByOrderNumber(order.orderNumber);
+            if (updatedOrder) {
+              sseConnectionManager.sendOrderUpdate(order.orderNumber, updatedOrder);
+              logger.debug(`SSE update sent for order ${order.orderNumber}`);
+            }
           }
         }
       }

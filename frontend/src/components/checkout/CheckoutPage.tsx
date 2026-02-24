@@ -4,9 +4,10 @@ import { useCart } from '../../contexts/CartContext';
 import { useOrder } from '../../contexts/OrderContext';
 import { CheckoutForm } from './CheckoutForm';
 import { OrderSummary } from './OrderSummary';
-import type { Customer } from '../../types/index';
+import type { ApiError, Customer } from '../../types/index';
 import apiClient from '../../services/api';
 import { ErrorMessage } from '../shared/ErrorMessage';
+import type { AxiosError } from 'axios';
 
 export const CheckoutPage: React.FC = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
@@ -38,8 +39,9 @@ export const CheckoutPage: React.FC = () => {
       setCurrentOrder(order);
       clearCart();
       navigate(`/order-success/${order.orderNumber}`);
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to place order. Please try again.');
+    } catch (err: unknown) {
+      const error = err as AxiosError<ApiError>;
+      setError(error.response?.data?.error?.message || 'Failed to place order. Please try again.');
       console.error(err);
     } finally {
       setIsSubmitting(false);

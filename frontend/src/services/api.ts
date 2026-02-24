@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, type AxiosError } from 'axios';
+import { getEnvVar, isDev } from '../utils/env';
 import type {
   MenuItem,
   Order,
@@ -14,8 +15,9 @@ class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
+    const apiBaseUrl = getEnvVar('VITE_API_BASE_URL', 'http://localhost:5000/api');
     this.client = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+      baseURL: apiBaseUrl,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -24,7 +26,7 @@ class ApiClient {
 
     this.client.interceptors.request.use(
       (config) => {
-        if (import.meta.env.DEV) {
+        if (isDev()) {
           console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
         }
         return config;
@@ -36,13 +38,13 @@ class ApiClient {
 
     this.client.interceptors.response.use(
       (response) => {
-        if (import.meta.env.DEV) {
+        if (isDev()) {
           console.log(`[API Response] ${response.config.url}`, response.data);
         }
         return response;
       },
       (error: AxiosError<ApiError>) => {
-        if (import.meta.env.DEV) {
+        if (isDev()) {
           console.error('[API Error]', error.response?.data || error.message);
         }
         return Promise.reject(error);

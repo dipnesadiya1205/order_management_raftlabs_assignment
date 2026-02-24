@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import type { Order } from '../types/index';
 import apiClient from '../services/api';
+import { useSSE, SSEConnectionState } from '../hooks/useSSE';
 
 interface OrderContextType {
   currentOrder: Order | null;
@@ -10,17 +11,35 @@ interface OrderContextType {
   startTracking: (orderNumber: string) => Promise<void>;
   stopTracking: () => void;
   refreshTracking: () => Promise<void>;
+  /** True while tracking is active. */
   isTracking: boolean;
+  /** SSE connection state. */
+  connectionState: SSEConnectionState;
+  /** Timestamp of the last successful update, or null before first update. */
+  lastUpdatedAt: Date | null;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
-
-const POLLING_INTERVAL = 5000;
 
 export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [trackingOrder, setTrackingOrder] = useState<Order | null>(null);
   const [isTracking, setIsTracking] = useState(false);
+
+  const handleSSEUpdate = useCallback((order: Order) => {
+    setTrackingOrder(order);
+  }, []);
+
+  const handleSSEError = useCallback((error: Event) => {
+    console.error('SSE connection error while tracking order:', error);
+  }, []);
+
+  const activeOrderNumber = isTracking && trackingOrder ? trackingOrder.orderNumber : null;
+
+  const { connectionState, lastUpdatedAt } = useSSE(activeOrderNumber, {
+    onUpdate: handleSSEUpdate,
+    onError: handleSSEError,
+  });
 
   const startTracking = async (orderNumber: string) => {
     try {
@@ -35,7 +54,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const refreshTracking = async () => {
     if (!trackingOrder) return;
-
     try {
       const updatedOrder = await apiClient.trackOrder(trackingOrder.orderNumber);
       setTrackingOrder(updatedOrder);
@@ -49,27 +67,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setIsTracking(false);
   };
 
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
-
-    if (isTracking && trackingOrder) {
-      interval = setInterval(async () => {
-        try {
-          const updatedOrder = await apiClient.trackOrder(trackingOrder.orderNumber);
-          setTrackingOrder(updatedOrder);
-        } catch (error) {
-          console.error('Failed to refresh tracking:', error);
-        }
-      }, POLLING_INTERVAL);
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [isTracking, trackingOrder?.orderNumber]);
-
   return (
     <OrderContext.Provider
       value={{
@@ -80,6 +77,8 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         stopTracking,
         refreshTracking,
         isTracking,
+        connectionState,
+        lastUpdatedAt,
       }}
     >
       {children}
