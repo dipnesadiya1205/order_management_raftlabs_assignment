@@ -28,9 +28,7 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
 
     if (index < currentIndex) return 'completed';
 
-    if (index === currentIndex) {
-      return isDeliveredStep ? 'completed' : 'current';
-    }
+    if (index === currentIndex) return isDeliveredStep ? 'completed' : 'current';
 
     return 'pending';
   };
@@ -55,6 +53,8 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
     <div className="space-y-4">
       {statusSteps.map((step, index) => {
         const status = getStepStatus(index);
+        const effectiveStatus =
+          step.status === OrderStatus.DELIVERED && status === 'current' ? 'completed' : status;
         const timestamp = getTimestamp(step.status);
 
         return (
@@ -62,9 +62,9 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
             <div className="flex flex-col items-center mr-4">
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-                  status === 'completed'
+                  effectiveStatus === 'completed'
                     ? 'bg-green-500 text-white'
-                    : status === 'current'
+                    : effectiveStatus === 'current'
                     ? 'bg-primary-600 text-white animate-pulse'
                     : 'bg-gray-200 text-gray-400'
                 }`}
@@ -74,7 +74,7 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
               {index < statusSteps.length - 1 && (
                 <div
                   className={`w-1 h-12 ${
-                    status === 'completed' ? 'bg-green-500' : 'bg-gray-200'
+                    effectiveStatus === 'completed' ? 'bg-green-500' : 'bg-gray-200'
                   }`}
                 />
               )}
@@ -82,7 +82,7 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
             <div className="flex-1 pb-8">
               <h3
                 className={`font-semibold ${
-                  status === 'completed' || status === 'current'
+                  effectiveStatus === 'completed' || effectiveStatus === 'current'
                     ? 'text-gray-800'
                     : 'text-gray-400'
                 }`}
@@ -92,7 +92,7 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
               {timestamp && (
                 <p className="text-sm text-gray-600 mt-1">{timestamp}</p>
               )}
-              {status === 'current' && (
+              {effectiveStatus === 'current' && (
                 <p className="text-sm text-primary-600 mt-1">In progress...</p>
               )}
             </div>
