@@ -22,8 +22,16 @@ export const OrderStatusTimeline: React.FC<OrderStatusTimelineProps> = ({
 
   const getStepStatus = (index: number): 'completed' | 'current' | 'pending' => {
     if (isCancelled) return 'pending';
+
+    const step = statusSteps[index];
+    const isDeliveredStep = step.status === OrderStatus.DELIVERED;
+
     if (index < currentIndex) return 'completed';
-    if (index === currentIndex) return 'current';
+
+    if (index === currentIndex) {
+      return isDeliveredStep ? 'completed' : 'current';
+    }
+
     return 'pending';
   };
 
