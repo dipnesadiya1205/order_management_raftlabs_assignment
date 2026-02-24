@@ -16,3 +16,11 @@ interface ImportMeta {
     [key: string]: string | boolean | undefined;
   };
 }
+
+declare const __APP_ENV__:
+  | {
+      VITE_API_BASE_URL?: string;
+      DEV?: boolean;
+      [key: string]: string | boolean | undefined;
+    }
+  | undefined;

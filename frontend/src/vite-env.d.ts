@@ -7,3 +7,8 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare const __APP_ENV__: ImportMetaEnv & {
+  readonly DEV?: boolean;
+  readonly [key: string]: string | boolean | undefined;
+};
