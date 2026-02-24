@@ -4,7 +4,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   define: {
-    __APP_ENV__: 'import.meta.env',
+    // Expose env vars (especially VITE_*) to the client bundle
+    __APP_ENV__: process.env,
   },
   server: {
     port: 5173,
