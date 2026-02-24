@@ -15,7 +15,7 @@ class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
-    const apiBaseUrl = getEnvVar('VITE_API_BASE_URL', 'http://localhost:5000/api');
+    const apiBaseUrl = getEnvVar('VITE_API_BASE_URL', 'https://order-management-raftlabs-assignment.onrender.com/api');
     this.client = axios.create({
       baseURL: apiBaseUrl,
       headers: {

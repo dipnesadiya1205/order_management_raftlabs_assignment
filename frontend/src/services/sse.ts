@@ -1,7 +1,7 @@
 import type { Order } from '../types/index';
 import { getEnvVar } from '../utils/env';
 
-const API_BASE_URL = getEnvVar('VITE_API_BASE_URL', 'http://localhost:5000/api');
+const API_BASE_URL = getEnvVar('VITE_API_BASE_URL', 'https://order-management-raftlabs-assignment.onrender.com/api');
 
 export interface SSEEventData {
   order: Order;
