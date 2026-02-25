@@ -24,6 +24,7 @@ export class MenuService {
   async getAllMenuItems(filters?: {
     category?: MenuCategory;
     isAvailable?: boolean;
+    search?: string;
   }): Promise<IMenuItem[]> {
     return await this.menuItemRepository.findAll(filters);
   }

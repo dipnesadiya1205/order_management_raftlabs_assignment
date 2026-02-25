@@ -24,20 +24,24 @@ export const getMenuItemById = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const getAllMenuItems = asyncHandler(async (req: Request, res: Response) => {
-  const { category, isAvailable } = req.query;
-  
+  const { category, isAvailable, search } = req.query;
+
   const filters: any = {};
-  
+
   if (category) {
     filters.category = category as MenuCategory;
   }
-  
+
   if (isAvailable !== undefined) {
     filters.isAvailable = isAvailable === 'true';
   }
-  
+
+  if (search && typeof search === 'string') {
+    filters.search = search.trim();
+  }
+
   const menuItems = await menuService.getAllMenuItems(filters);
-  
+
   res.status(200).json({
     success: true,
     data: menuItems,

@@ -14,6 +14,7 @@ export class MenuItemRepository {
   async findAll(filters?: {
     category?: MenuCategory;
     isAvailable?: boolean;
+    search?: string;
   }): Promise<IMenuItem[]> {
     const query: FilterQuery<IMenuItem> = {};
 
@@ -23,6 +24,11 @@ export class MenuItemRepository {
 
     if (filters?.isAvailable !== undefined) {
       query.isAvailable = filters.isAvailable;
+    }
+
+    if (filters?.search) {
+      const regex = new RegExp(filters.search, 'i');
+      query.$or = [{ name: regex }, { description: regex }];
     }
 
     return await MenuItem.find(query).sort({ category: 1, name: 1 });
